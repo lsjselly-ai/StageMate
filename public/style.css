@@ -1,3 +1,42 @@
+@media (max-width: 768px) {
+
+    .navbar {
+        padding: 10px 15px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    .logo a {
+        font-size: 18px !important;
+    }
+
+    .nav-links {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .calendar-section {
+        padding: 15px !important;
+    }
+
+    .calendar-header h3 {
+        font-size: 16px !important;
+    }
+
+    .day-cell {
+        height: 32px !important;
+        font-size: 11px !important;
+    }
+
+    .day-cell::before {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
+
 :root {
     --bg-color: #0d0d0d;
     --text-color: #ffffff;
