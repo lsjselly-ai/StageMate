@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q&A - STAGE MATE</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h3>CONCERT LIST</h3>
+            <span class="close-btn" id="closeBtn">✕</span>
+        </div>
+        <ul class="concert-menu-list">
+            <% concerts.forEach(concert=> { %>
+                <li><a href="/posts?concertId=<%= concert.id %>">
+                        <%= concert.title %>
+                    </a></li>
+                <% }) %>
+        </ul>
+    </div>
+
+    <header class="navbar">
+        <div class="menu-icon" id="menuBtn">☰</div>
+        <h1 class="logo"><a href="/">STAGE MATE</a></h1>
+        <div class="nav-links">
+            <a href="/posts">동행 모집</a>
+            <a href="/QNA" class="neon-mint-text">Q&A</a>
+            <% if (user) { %>
+                <a href="/mypage">마이페이지</a>
+                <a href="/logout" class="neon-btn">로그아웃</a>
+                <% } else { %>
+                    <a href="/form">로그인</a>
+                    <a href="/form?tab=signup" class="neon-btn">회원가입</a>
+                    <% } %>
+        </div>
+    </header>
+
+    <main class="qna-container">
+        <div class="section-header">
+            <h2>❓ Q&A BOARD</h2>
+            <% if (user) { %>
+                <button class="neon-btn" onclick="document.getElementById('qnaModal').style.display='block'">문의
+                    작성하기</button>
+                <% } %>
+        </div>
+
+        <div id="qnaModal" class="profile-edit-drawer"
+            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; width: 500px; display: none;">
+            <h3 style="color: #fff; margin-top: 0;">❓ 문의 작성하기</h3>
+            <form action="/qna/create" method="POST">
+                <div class="form-group">
+                    <label>문의 내용</label>
+                    <textarea name="title" required placeholder="궁금한 점이나 요청사항을 적어주세요."
+                        style="width:100%; height:100px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:4px; padding:10px; resize:none; font: 12px 'loos-extended', sans-serif;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="neon-btn-mint" style="flex: 1; padding: 10px;">등록하기</button>
+                    <button type="button" class="check-btn"
+                        onclick="document.getElementById('qnaModal').style.display='none'"
+                        style="padding: 10px 20px; height: auto;">취소</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="qna-list">
+            <% qnaList.forEach(q=> { %>
+                <div class="qna-item">
+                    <div class="qna-question" onclick="toggleAnswer(this)">
+                        <div class="qna-info">
+                            <span class="status <%= q.status === 'complete' ? 'complete' : 'waiting' %>">
+                                <%= q.status==='complete' ? '답변완료' : '답변대기' %>
+                            </span>
+                            <span class="q-title">
+                                <%= q.title %>
+                            </span>
+                        </div>
+                        <span class="q-author">
+                            <%= q.author %>
+                        </span>
+                    </div>
+                    <div class="qna-answer">
+                        <% if (q.status==='complete' ) { %>
+                            <div class="admin-badge">👑 ADMIN</div>
+                            <p>
+                                <%= q.answer %>
+                            </p>
+                            <% } else if (user && user.username==='admin' ) { %>
+                                <form action="/qna/answer" method="POST" class="admin-reply-form">
+                                    <input type="hidden" name="qnaId" value="<%= q.id %>">
+                                    <textarea name="answerText" placeholder="관리자 답변을 입력하세요..." class="reply-input"
+                                        required></textarea>
+                                    <button type="submit" class="reply-submit-btn">답변 등록</button>
+                                </form>
+                                <% } else { %>
+                                    <p style="color: #666; font-style: italic; font-size: 12px; margin:0;">관리자가 확인 중입니다.
+                                        잠시만 기다려주세요!</p>
+                                    <% } %>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+
+        <footer
+            style="background-color: #090909; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 40px 40px; margin-top: 60px; font-family: sans-serif;">
+            <div
+                style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 30px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <h2
+                        style="font-size: 20px; font-weight: 900; letter-spacing: 2px; margin: 0; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">
+                        StageMate</h2>
+                    <p style="font-size: 12px; color: #888; margin: 5px 0 15px 0;">혼자가 아닌 함께하는 공연</p>
+                    <div style="font-size: 11px; color: #555; display: flex; flex-direction: column; gap: 4px;">
+                        <span>Developer : 이승지</span>
+                        <span>Contact : lsjselly@email.com</span>
+                        <span style="margin-top: 10px;">© 2026 StageMate. All rights reserved.</span>
+                    </div>
+                </div>
+                <div
+                    style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; min-width: 200px;">
+                    <p style="font-size: 13px; color: #ccc; margin: 0; font-style: italic; letter-spacing: 0.5px;">"오늘도
+                        새로운 공연 친구를 만나보세요."</p>
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="wish-btn"
+                        style="margin-top: 5px; padding: 10px 25px; font-size: 12px; font-weight: bold; border-radius: 20px;">동행
+                        찾기</button>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        function toggleAnswer(element) {
+            const answerDiv = element.nextElementSibling;
+            document.querySelectorAll('.qna-answer').forEach(ans => {
+                if (ans !== answerDiv) ans.classList.remove('open');
+            });
+            answerDiv.classList.toggle('open');
+        }
+    </script>
+    <script src="/script1.js"></script>
+</body>
+
+</html>

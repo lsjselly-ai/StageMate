@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAGE MATE</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h3>CONCERT LIST</h3>
+            <span class="close-btn" id="closeBtn">✕</span>
+        </div>
+        <ul class="concert-menu-list">
+            <% concerts.forEach(concert=> { %>
+                <li>
+                    <a href="/posts?concertId=<%= concert.id %>">
+                        <%= concert.title %>
+                    </a>
+                </li>
+                <% }) %>
+        </ul>
+    </div>
+
+    <header class="navbar">
+        <div class="menu-icon" id="menuBtn">☰</div>
+        <h1 class="logo"><a href="/">STAGE MATE</a></h1>
+        <div class="nav-links">
+            <a href="/posts">동행 모집</a>
+            <a href="/QNA">Q&A</a>
+        </div>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-tabs">
+            <button class="tab-btn active" onclick="switchTab('login')">LOGIN</button>
+            <button class="tab-btn" onclick="switchTab('signup')">SIGN UP</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active" action="/login" method="POST">
+            <div class="input-group">
+                <label>아이디</label>
+                <input type="text" name="username" placeholder="아이디를 입력하세요" required>
+            </div>
+            <div class="input-group">
+                <label>비밀번호</label>
+                <input type="password" name="password" placeholder="비밀번호를 입력하세요" required>
+            </div>
+            <button type="submit" class="auth-submit-btn neon-btn-purple">로그인</button>
+        </form>
+
+        <form id="signupForm" class="auth-form" action="/signup" method="POST" enctype="multipart/form-data">
+            enctype="multipart/form-data">
+            <div class="input-group">
+                <label>아이디</label>
+                <div class="id-check-wrapper">
+                    <input type="text" id="signupUsername" name="username" placeholder="사용할 아이디 입력" required>
+                    <button type="button" class="check-btn" onclick="checkId()">중복 확인</button>
+                </div>
+                <span id="idCheckMsg" class="input-msg error" style="display:none;"></span>
+            </div>
+            <div class="input-group">
+                <label>비밀번호</label>
+                <input type="password" name="password" placeholder="비밀번호 입력 (8자 이상)" required>
+            </div>
+            <div class="input-group">
+                <label>프로필 사진</label>
+                <div class="profile-upload-box">
+                    <div class="avatar-preview">👤</div>
+                    <input type="file" id="profileImg" name="profileImg" accept="image/*" style="display: none;"
+                        onchange="previewImage(this)">
+                    <label for="profileImg" class="upload-label">갤러리에서 선택</label>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>별명 (NICKNAME)</label>
+                <input type="text" name="nickname" placeholder="미입력 시 랜덤 닉네임이 생성됩니다">
+            </div>
+
+            <div class="input-group">
+                <label>성별</label>
+                <div style="display: flex; gap: 20px; padding-top: 5px; color: #fff;">
+                    <label style="cursor: pointer;"><input type="radio" name="gender" value="여자" required> 여자</label>
+                    <label style="cursor: pointer;"><input type="radio" name="gender" value="남자" required> 남자</label>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>나이</label>
+                <select name="age" required
+                    style="background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 4px; width: 100%;">
+                    <option value="" disabled selected hidden>나이대를 선택해주세요</option>
+                    <option value="10">10대</option>
+                    <option value="20">20대</option>
+                    <option value="30">30대</option>
+                    <option value="40">40대</option>
+                </select>
+            </div>
+            <button type="submit" class="auth-submit-btn neon-btn-mint">회원가입</button>
+        </form>
+    </main>
+    <script>
+        function switchTab(type) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const forms = document.querySelectorAll('.auth-form');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            forms.forEach(form => form.classList.remove('active'));
+
+            if (type === 'login') {
+                tabs[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('signupForm').classList.add('active');
+            }
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') === 'signup') {
+                switchTab('signup');
+            }
+        });
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.querySelector('.avatar-preview');
+                    preview.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        let isIdChecked = false;
+
+        function checkId() {
+            const inputField = document.getElementById('signupUsername');
+            const msgElement = document.getElementById('idCheckMsg');
+            const username = inputField.value.trim();
+
+            if (username === '') {
+                alert('아이디를 입력해 주세요!');
+                inputField.focus();
+                return;
+            }
+
+            fetch(`/api/check-id?username=${username}`)
+                .then(response => response.json())
+                .then(data => {
+                    msgElement.style.display = 'block';
+                    if (data.available) {
+                        msgElement.style.color = 'var(--neon-mint)';
+                        msgElement.innerText = '✅ 사용 가능한 아이디입니다!';
+                        isIdChecked = true;
+                    } else {
+                        msgElement.style.color = '#ff3333';
+                        msgElement.innerText = '❌ 이미 사용 중인 아이디입니다.';
+                        isIdChecked = false;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert("서버 오류가 발생했습니다.");
+                });
+        }
+
+        document.getElementById('signupUsername')?.addEventListener('input', () => {
+            isIdChecked = false;
+            document.getElementById('idCheckMsg').style.display = 'none';
+        });
+
+        document.getElementById('signupForm')?.addEventListener('submit', function (e) {
+            if (!isIdChecked) {
+                e.preventDefault();
+                alert('회원가입 전 아이디 중복 확인을 해주세요!');
+            }
+        });
+    </script>
+    <script src="/script1.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY PAGE - STAGE MATE</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h3>CONCERT LIST</h3>
+            <span class="close-btn" id="closeBtn">✕</span>
+        </div>
+        <ul class="concert-menu-list">
+            <% concerts.forEach(concert=> { %>
+                <li>
+                    <a href="/posts?concertId=<%= concert.id %>">
+                        <%= concert.title %>
+                    </a>
+                </li>
+                <% }) %>
+        </ul>
+    </div>
+
+    <header class="navbar">
+        <div class="menu-icon" id="menuBtn">☰</div>
+        <h1 class="logo"><a href="/">STAGE MATE</a></h1>
+        <div class="nav-links">
+            <a href="/posts">동행 모집</a>
+            <a href="/QNA">Q&A</a>
+            <a href="/logout" class="neon-btn">로그아웃</a>
+        </div>
+    </header>
+
+    <main class="mypage-container">
+        <section class="profile-section neon-border">
+            <div class="profile-img-box">
+                <div class="default-avatar"
+                    style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 40px; background: #222; margin: 0 auto;">
+                    <% if (user.profileImg && user.profileImg.trim() !=='' ) { %>
+                        <img src="<%= user.profileImg %>" style="width: 100%; height: 100%; object-fit: cover;">
+                        <% } else { %>
+                            <%= user.gender==='여자' ? '🐰' : '🐨' %>
+                                <% } %>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h2>
+                    <%= user.nickname %> (<%= user.age %>대 / <%= user.gender %>)
+                </h2>
+                <p>아이디: <%= user.username %>
+                </p>
+                <button class="edit-profile-btn" onclick="toggleProfileEdit()">프로필 수정</button>
+            </div>
+        </section>
+
+        <div id="profileEditDrawer" class="profile-edit-drawer">
+            <h3 style="color: #fff; margin-top: 0; margin-bottom: 5px; font-size: 18px;">🔒 프로필 수정</h3>
+            <p></p>
+
+            <form action="/mypage/update" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>닉네임</label>
+                    <input type="text" name="nickname" value="<%= user.nickname %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label>프로필 이미지 변경</label>
+                    <input type="file" name="profileImg" accept="image/*"
+                        style="background:none; border:none; padding:0; color:#fff;">
+                </div>
+
+                <div class="form-group">
+                    <label>성별</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="gender" value="여자" <%=user.gender==='여자' ? 'checked' : '' %>>
+                            여자</label>
+                        <label><input type="radio" name="gender" value="남자" <%=user.gender==='남자' ? 'checked' : '' %>>
+                            남자</label>
+
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>나이</label>
+                    <select name="age">
+                        <option value="10" <%=user.age==='10' ? 'selected' : '' %>>10대</option>
+                        <option value="20" <%=user.age==='20' ? 'selected' : '' %>>20대</option>
+                        <option value="30" <%=user.age==='30' ? 'selected' : '' %>>30대</option>
+                        <option value="40" <%=user.age==='40' ? 'selected' : '' %>>40대</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="submit" class="neon-btn"
+                        style="padding: 10px 20px; cursor: pointer; background: transparent; color: #fff; border: 1px solid #fff;">수정
+                        완료</button>
+                    <button type="button" class="check-btn" onclick="toggleProfileEdit()"
+                        style="height: auto; padding: 10px 20px;">취소</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mypage-tabs">
+            <button class="my-tab-btn" onclick="switchMyTab('myposts')">📝 작성한 글</button>
+            <button class="my-tab-btn" onclick="switchMyTab('mycomments')">💬 작성한 댓글</button>
+        </div>
+
+        <section id="myposts" class="my-content">
+            <div class="my-list">
+                <% if (posts.length===0) { %>
+                    <p style="text-align: center; color: #555; font-style: italic; padding: 20px 0;">아직 작성한 글이
+                        없습니다.</p>
+                    <% } else { %>
+                        <% posts.forEach(post=> { %>
+                            <div class="my-list-item" onclick="location.href='/posts?concertId=<%= post.concertId %>'">
+                                <span class="my-tag">🎤 <%= post.concertTitle %></span>
+                                <p class="my-title">
+                                    <%= post.title %>
+                                </p>
+                                <span class="my-date">💬 댓글 <%= post.commentCount %>개</span>
+                            </div>
+                            <% }) %>
+                                <% } %>
+            </div>
+        </section>
+
+        <section id="mycomments" class="my-content">
+            <div class="my-list">
+                <% if (comments.length===0) { %>
+                    <p style="text-align: center; color: #555; font-style: italic; padding: 20px 0;">아직 작성한 댓글이 없습니다.
+                    </p>
+                    <% } else { %>
+                        <% comments.forEach(comment=> { %>
+                            <div class="my-list-item"
+                                onclick="location.href='/posts?concertId=<%= comment.concertId %>'">
+                                <span class="my-tag">💬 <%= comment.concertTitle %></span>
+                                <p class="my-title">"<%= comment.text %>"</p>
+                            </div>
+                            <% }) %>
+                                <% } %>
+            </div>
+        </section>
+        <footer
+            style="background-color: #090909; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 40px 40px; margin-top: 60px; font-family: sans-serif;">
+            <div
+                style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 30px;">
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <h2
+                        style="font-size: 20px; font-weight: 900; letter-spacing: 2px; margin: 0; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">
+                        StageMate</h2>
+                    <p style="font-size: 12px; color: #888; margin: 5px 0 15px 0;">혼자가 아닌 함께하는 공연</p>
+
+                    <div style="font-size: 11px; color: #555; display: flex; flex-direction: column; gap: 4px;">
+                        <span>Developer : 이승지</span>
+                        <span>Contact : lsjselly@email.com</span>
+                        <span style="margin-top: 10px;">© 2026 StageMate. All rights reserved.</span>
+                    </div>
+                </div>
+
+                <div
+                    style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; min-width: 200px;">
+                    <p style="font-size: 13px; color: #ccc; margin: 0; font-style: italic; letter-spacing: 0.5px;">
+                        "오늘도 새로운 공연 친구를 만나보세요."
+                    </p>
+
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="wish-btn"
+                        style="margin-top: 5px; padding: 10px 25px; font-size: 12px; font-weight: bold; border-radius: 20px;">
+                        동행 찾기
+                    </button>
+                </div>
+
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        function switchMyTab(tabId) {
+            document.querySelectorAll('.my-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.my-content').forEach(content => content.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        function toggleProfileEdit() {
+            const drawer = document.getElementById('profileEditDrawer');
+            if (drawer) {
+                drawer.classList.toggle('active');
+            }
+        }
+    </script>
+    <script src="/script1.js"></script>
+</body>
+
+</html>

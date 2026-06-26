@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAGE MATE</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h3>CONCERT LIST</h3>
+            <span class="close-btn" id="closeBtn">✕</span>
+        </div>
+        <ul class="concert-menu-list">
+            <% concerts.forEach(concert=> { %>
+                <li>
+                    <a href="/posts?concertId=<%= concert.id %>">
+                        <%= concert.title %>
+                    </a>
+                </li>
+                <% }) %>
+        </ul>
+    </div>
+    <header class="navbar">
+        <div class="menu-icon" id="menuBtn">☰</div>
+        <h1 class="logo"><a href="/">STAGE MATE</a></h1>
+        <div class="nav-links">
+            <a href="/QNA">Q&A</a>
+            <% if (user) { %>
+                <a href="/mypage">마이페이지</a>
+                <a href="/logout" class="neon-btn">로그아웃</a>
+                <% } else { %>
+                    <a href="/form">로그인</a>
+                    <a href="/form?tab=signup" class="neon-btn">회원가입</a>
+                    <% } %>
+        </div>
+    </header>
+
+
+    <main>
+        <div class="poster-slider-window" style="position: relative;">
+            <button class="slider-arrow prev-btn" id="prevPostBtn">❮</button>
+
+            <div class="poster-track" id="posterTrack">
+                <% for(let i=0; i < concerts.length; i++) { %>
+                    <% if(concerts[i].id < 6) { %>
+                        <div class="poster-card"
+                            onclick="location.href='/posts?concertId=<%= concerts[i].id %>&age[]='">
+                            <div class="poster-img-wrapper">
+                                <img src="<%= concerts[i].image %>" alt="<%= concerts[i].title %>">
+                            </div>
+                            <div class="poster-info">
+                                <h3 class="poster-title">
+                                    <%= concerts[i].title %>
+                                </h3>
+                                <p class="poster-date">
+                                    <%= concerts[i].date %>
+                                </p>
+                            </div>
+                        </div>
+                        <% } %>
+                            <% } %>
+            </div>
+
+            <button class="slider-arrow next-btn" id="nextPostBtn">❯</button>
+        </div>
+
+
+        <section class="calendar-section">
+            <h2 class="section-title">📅 MONTHLY SCHEDULE</h2>
+
+            <div class="calendar-wrapper neon-border">
+                <div class="calendar-left">
+                    <div class="calendar-header">
+                        <button id="prevMonthBtn" class="cal-btn">&lt;</button>
+                        <h3 id="calendarMonthTitle"></h3>
+                        <button id="nextMonthBtn" class="cal-btn">&gt;</button>
+                    </div>
+                    <div class="weekdays">
+                        <div>S</div>
+                        <div>M</div>
+                        <div>T</div>
+                        <div>W</div>
+                        <div>T</div>
+                        <div>F</div>
+                        <div>S</div>
+                    </div>
+                    <div class="days" id="calendarDays">
+                    </div>
+                </div>
+
+                <div class="calendar-right">
+                    <div class="schedule-header">
+                        <span id="selectedDateText">오늘의 날짜</span>의 라인업
+                    </div>
+                    <div class="schedule-list" id="scheduleList">
+                        <p class="no-schedule">날짜를 클릭하여 공연 일정을 확인하세요.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="active-posts-section" style="margin-top: 50px; padding: 20px;">
+            <h2 class="section-title">🔥 인기 동행 모집글 (HOT)</h2>
+            <div class="review-grid">
+                <% activePosts.forEach(post=> { %>
+                    <div class="review-card neon-border" style="cursor: pointer;"
+                        onclick="location.href='/posts?concertId=<%= post.concertId %>'">
+                        <div style="font-size: 11px; color: var(--neon-mint); font-weight: bold; margin-bottom: 5px;">🎵
+                            <%= post.concertTitle %>
+                        </div>
+                        <h3 style="margin: 5px 0 10px 0; font-size: 1.2rem; color: #fff;">
+                            <%= post.title %>
+                        </h3>
+                        <p style="color: #aaa; font-size: 11px; margin-bottom: 15px;">
+                            <%= post.content.substring(0, 40) %>...
+                        </p>
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #555;">
+                            <span>🐨 <%= post.nickname %></span>
+                            <span>👀 조회수 <%= post.views %> | 💬 댓글 <%= post.commentCount %></span>
+                        </div>
+                    </div>
+                    <% }) %>
+            </div>
+        </section>
+        <footer
+            style="background-color: #090909; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 40px 40px; margin-top: 60px; font-family: sans-serif;">
+            <div
+                style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 30px;">
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <h2
+                        style="font-size: 20px; font-weight: 900; letter-spacing: 2px; margin: 0; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">
+                        StageMate</h2>
+                    <p style="font-size: 12px; color: #888; margin: 5px 0 15px 0;">혼자가 아닌 함께하는 공연</p>
+
+                    <div style="font-size: 11px; color: #555; display: flex; flex-direction: column; gap: 4px;">
+                        <span>Developer : 이승지</span>
+                        <span>Contact : lsjselly@email.com</span>
+                        <span style="margin-top: 10px;">© 2026 StageMate. All rights reserved.</span>
+                    </div>
+                </div>
+
+                <div
+                    style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; min-width: 200px;">
+                    <p style="font-size: 13px; color: #ccc; margin: 0; font-style: italic; letter-spacing: 0.5px;">
+                        "오늘도 새로운 공연 친구를 만나보세요."
+                    </p>
+
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="wish-btn"
+                        style="margin-top: 5px; padding: 10px 25px; font-size: 12px; font-weight: bold; border-radius: 20px;">
+                        동행 찾기
+                    </button>
+                </div>
+
+            </div>
+        </footer>
+    </main>
+
+    <script src="/script1.js"></script>
+</body>
+
+</html>

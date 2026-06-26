@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동행 모집 - STAGE MATE</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h3>CONCERT LIST</h3>
+            <span class="close-btn" id="closeBtn">✕</span>
+        </div>
+        <ul class="concert-menu-list">
+            <% concerts.forEach(concert=> { %>
+                <li><a href="/posts?concertId=<%= concert.id %>">
+                        <%= concert.title %>
+                    </a></li>
+                <% }) %>
+        </ul>
+    </div>
+    <header class="navbar">
+        <div class="menu-icon" id="menuBtn">☰</div>
+        <h1 class="logo"><a href="/">STAGE MATE</a></h1>
+        <div class="nav-links">
+            <a href="/posts">동행 모집</a>
+            <a href="/QNA">Q&A</a>
+            <% if (user) { %>
+                <a href="/mypage">마이페이지</a>
+                <a href="/logout" class="neon-btn">로그아웃</a>
+                <% } else { %>
+                    <a href="/form">로그인</a>
+                    <a href="/form?tab=signup" class="neon-btn">회원가입</a>
+                    <% } %>
+        </div>
+    </header>
+
+    <main style="padding: 40px;">
+        <h2>
+            <%= concert.title %> 동행 모집 페이지
+        </h2>
+
+        <form action="/posts" method="GET" class="filter-form"
+            style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; background: #121212; padding: 25px; border-radius: 12px; border: 1px solid #222;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div class="filter-group" style="flex: 1; min-width: 200px;">
+                    <label
+                        style="font-size: 11px; color: #888; display: block; margin-bottom: 8px; letter-spacing: 1px;">공연
+                        선택</label>
+                    <select name="concertId" id="filterConcertSelect"
+                        onchange="updateFilterDates(); updateModalDates();"
+                        style="width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; font-family: inherit;">
+                        <option value="">전체 공연 보기</option>
+                        <% concerts.forEach(c=> { %>
+                            <option value="<%= c.id %>" data-dates="<%= c.date %>" <%=filters.concertId==c.id
+                                ? 'selected' : '' %>><%= c.title %>
+                            </option>
+                            <% }) %>
+                    </select>
+                </div>
+
+                <div class="filter-group" style="flex: 2; min-width: 250px;">
+                    <label
+                        style="font-size: 11px; color: #888; display: block; margin-bottom: 8px; letter-spacing: 1px;">날짜
+                        선택 (중복 가능)</label>
+                    <div id="filterDateCheckboxContainer"
+                        style="display: flex; gap: 15px; flex-wrap: wrap; padding-top: 5px; color: #fff;"></div>
+                </div>
+
+                <div class="filter-group" style="flex: 1; min-width: 180px;">
+                    <label
+                        style="font-size: 11px; color: #888; display: block; margin-bottom: 8px; letter-spacing: 1px;">나이
+                        (중복 가능)</label>
+                    <div style="display: flex; gap: 10px; align-items: center; padding-top: 5px; flex-wrap: wrap;">
+                        <% ['10', '20' , '30' , '40' ].forEach(age=> { %>
+                            <label
+                                style="color: #fff; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                                <input type="checkbox" name="age" value="<%= age %>" <%=(filters.age &&
+                                    filters.age.includes(age)) ? 'checked' : '' %>> <%= age %>대
+                            </label>
+                            <% }) %>
+                    </div>
+                </div>
+
+                <div class="filter-group" style="flex: 1; min-width: 120px;">
+                    <label
+                        style="font-size: 11px; color: #888; display: block; margin-bottom: 8px; letter-spacing: 1px;">성별
+                        (중복 가능)</label>
+                    <div style="display: flex; gap: 15px; align-items: center; padding-top: 5px;">
+                        <label
+                            style="color: #fff; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                            <input type="checkbox" name="gender" value="여자" <%=(filters.gender &&
+                                filters.gender.includes('여자')) ? 'checked' : '' %>> 여자
+                        </label>
+                        <label
+                            style="color: #fff; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                            <input type="checkbox" name="gender" value="남자" <%=(filters.gender &&
+                                filters.gender.includes('남자')) ? 'checked' : '' %>> 남자
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="check-btn" style="width: 100%; height: 40px; font-weight: bold;">필터
+                    적용하기</button>
+                <% if (user) { %>
+                    <button type="button" class="neon-btn-mint" onclick="openWriteModal()"
+                        style="width: 100%; height: 40px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">
+                        ✍️ 새로운 동행 모집글 쓰기
+                    </button>
+                    <% } else { %>
+                        <button type="button" class="neon-btn-mint"
+                            onclick="if(confirm('글을 작성하려면 로그인이 필요합니다. 로그인 페이지로 이동할까요?')) location.href='/form';"
+                            style="width: 100%; height: 40px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; background-color: #333; color: #888; box-shadow: none;">
+                            🔒 로그인 후 동행 모집글 쓰기
+                        </button>
+                        <% } %>
+            </div>
+        </form>
+
+        <div id="writeModal" class="profile-edit-drawer"
+            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2000; width: 500px; display: none;">
+            <h3 id="modalTitle" style="color: #fff; margin-top: 0;">✍️ 동행 모집하기</h3>
+            <form id="postForm" action="/posts/create" method="POST" onsubmit="return validatePostForm()">
+                <input type="hidden" id="postIdInput" name="postId">
+
+                <div class="form-group">
+                    <label>공연 선택</label>
+                    <select name="concertId" id="modalConcertSelect" onchange="updateModalDates()">
+                        <% concerts.forEach(c=> { %>
+                            <option value="<%= c.id %>" data-dates="<%= c.date %>">
+                                <%= c.title %>
+                            </option>
+                            <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>공연 날짜 선택 (중복 가능)</label>
+                    <div id="modalDateCheckboxContainer"
+                        style="display: flex; gap: 15px; padding-top: 5px; color: #fff;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>제목</label>
+                    <input type="text" name="title" id="modalTitleInput" required placeholder="제목을 적어주세요.">
+                </div>
+
+                <div class="form-group">
+                    <label>추가 내용</label>
+                    <textarea name="content" id="modalContentInput"
+                        style="width:100%; height:100px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:4px; padding:10px; box-sizing:border-box; resize:none;"
+                        placeholder="상세 동행 조건이나 오픈카톡 링크를 적어주세요."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="neon-btn-mint" style="flex: 1; padding: 10px;">등록하기</button>
+                    <button type="button" class="check-btn" onclick="closeWriteModal()"
+                        style="padding: 10px 20px; height: auto;">취소</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="posts-list-container" style="margin-top: 40px;">
+            <% if (posts.length===0) { %>
+                <p style="text-align: center; color: #555; font-style: italic; padding: 40px 0;">현재 조건에 맞는 모집글이 없습니다. 첫
+                    글을 등록해 보세요!</p>
+                <% } else { %>
+                    <% posts.forEach(post=> { %>
+                        <div class="post-card"
+                            style="background-color: #141414; border: 1px solid #222; border-radius: 12px; padding: 25px; margin-bottom: 25px; position: relative;">
+                            <div class="post-header"
+                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 12px; margin-bottom: 15px;">
+                                <% let timeText='방금 전' ; if (post.createdAt) { const diffMins=Math.floor((new Date() -
+                                    new Date(post.createdAt)) / (1000 * 60)); const diffHours=Math.floor(diffMins / 60);
+                                    if (diffMins < 1) timeText='방금 전' ; else if (diffMins < 60) timeText=diffMins
+                                    + '분 전' ; else if (diffHours < 24) timeText=diffHours + '시간 전' ; else { const
+                                    created=new Date(post.createdAt); timeText=created.getFullYear() + '.' +
+                                    (created.getMonth() + 1).toString().padStart(2, '0' ) + '.' +
+                                    created.getDate().toString().padStart(2, '0' ); } } let
+                                    defaultIcon=post.gender==='여자' ? '🐰' : '🐨' ; %>
+
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="anon-profile"
+                                            style="color: var(--neon-purple); font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;"
+                                            onclick="openUserProfile('<%= post.nickname %>', '<%= post.age %>', '<%= post.gender %>', '<%= defaultIcon %>', '<%= post.profileImg %>')">
+                                            <% if (post.profileImg && post.profileImg.trim() !=='' ) { %>
+                                                <img src="<%= post.profileImg %>"
+                                                    style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover; border: 1px solid #444;">
+                                                <% } else { %>
+                                                    <%= defaultIcon %>
+                                                        <% } %>
+                                                            <%= post.nickname %>
+                                        </span>
+                                        <span style="font-size: 11px; color: #666;">
+                                            <%= timeText %>
+                                        </span>
+                                    </div>
+
+                                    <div style="color: #888; font-size: 11px; text-align: right;">
+                                        📅 희망 날짜:
+                                        <span style="color: #fff; font-weight: bold;">
+                                            <% if (post.dates && post.dates.length> 0) { %>
+                                                <%= post.dates.map(d=> d.split('-').length === 3 ?
+                                                    `${d.split('-')[1]}/${d.split('-')[2]}` : d).join(', ') %>
+                                                    <% } else { %> 날짜 미지정 <% } %>
+                                        </span> | 👥 <%= post.age %>대 / <%= post.gender %>
+                                    </div>
+                            </div>
+
+                            <div class="post-body" style="margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <h4 style="font-size: 1.3rem; margin: 0 0 10px 0; color: #fff;">
+                                        <%= post.title %>
+                                    </h4>
+                                    <% if (user && user.username===post.username) { %>
+                                        <div style="display: flex; gap: 8px; z-index: 10;">
+                                            <button class="edit-profile-btn"
+                                                onclick="openEditModal('<%= post.id %>', '<%= post.title %>', '<%= post.content %>', '<%= post.concertId %>', '<%= post.dates.join(',') %>')"
+                                                style="padding: 4px 10px; font-size: 11px;">수정</button>
+                                            <form action="/posts/delete" method="POST" style="margin: 0;"
+                                                onsubmit="return confirm('정말 글을 삭제하시겠습니까?');">
+                                                <input type="hidden" name="postId" value="<%= post.id %>">
+                                                <button type="submit" class="check-btn"
+                                                    style="padding: 4px 10px; font-size: 11px; border-color: #ff334b; color: #ff334b; background: transparent; height: auto;">삭제</button>
+                                            </form>
+                                        </div>
+                                        <% } %>
+                                </div>
+                                <p style="color: #ccc; line-height: 1.6; margin: 0; font-size: 1.1rem;">
+                                    <%= post.content %>
+                                </p>
+                            </div>
+
+                            <div class="comment-section"
+                                style="background-color: #0d0d0d; border-radius: 8px; padding: 20px; border-top: 1px solid #1a1a1a;">
+                                <div class="comment-list" style="margin-bottom: 15px;">
+                                    <% const postComments=comments.filter(c=> c.postId === post.id); %>
+                                        <% if (postComments.length===0) { %>
+                                            <p class="no-schedule"
+                                                style="font-size: 11px; color: #444; margin: 0; padding: 5px 0;">아직 작성된
+                                                댓글이 없습니다.</p>
+                                            <% } else { %>
+                                                <% postComments.forEach(comment=> { %>
+                                                    <div class="comment-item"
+                                                        style="padding: 8px 0; border-bottom: 1px solid #161616; display: flex; align-items: center; font-size: 11px;">
+                                                        <span class="comment-user"
+                                                            style="color: var(--neon-mint); margin-right: 8px; font-weight: bold;">
+                                                            <%= comment.nickname %>
+                                                        </span>
+                                                        <% if (post.username===comment.username) { %><span
+                                                                style="background: var(--neon-purple); color: #fff; font-size: 9px; padding: 1px 4px; border-radius: 3px; margin-right: 8px; font-weight: bold; box-shadow: 0 0 5px var(--neon-purple);">작성자</span>
+                                                            <% } %>
+                                                                <span class="comment-text" style="color: #ddd;">
+                                                                    <%= comment.text %>
+                                                                </span>
+                                                    </div>
+                                                    <% }) %>
+                                                        <% } %>
+                                </div>
+                                <form action="/posts/comment" method="POST" class="comment-form"
+                                    style="display: flex; gap: 10px;"
+                                    onsubmit="if(!this.commentText.value.trim()){ alert('댓글 내용을 입력해주세요.'); return false; }">
+                                    <input type="hidden" name="postId" value="<%= post.id %>">
+                                    <input type="text" name="commentText" class="comment-input" required
+                                        placeholder="댓글을 남겨보세요."
+                                        style="flex: 1; background-color: #161616; border: 1px solid #222; border-radius: 4px; color: #fff; padding: 8px 12px; font-size: 11px;">
+                                    <button type="submit" class="comment-submit"
+                                        style="background-color: var(--neon-purple); border: none; color: #fff; padding: 0 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;">등록</button>
+                                </form>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } %>
+        </div>
+
+        <div id="profileModal" class="profile-edit-drawer"
+            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3000; width: 280px; display: none; text-align: center; background: #111; border: 1px solid #333; border-radius: 12px; padding: 25px; box-shadow: 0 0 20px rgba(181,0,255,0.3);">
+            <div id="pModalAvatar"
+                style="font-size: 45px; margin-bottom: 12px; width: 80px; height: 80px; line-height: 80px; background: #222; border-radius: 50%; margin: 0 auto 15px auto; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                ⚡</div>
+            <h3 id="pModalName" style="margin: 0 0 8px 0; color: #fff; font-size: 1.3rem;"></h3>
+            <p id="pModalInfo"
+                style="color: var(--neon-mint); margin: 0 0 20px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">
+            </p>
+            <button class="check-btn" onclick="document.getElementById('profileModal').style.display='none'"
+                style="width: 100%; height: 35px; background: transparent; border: 1px solid var(--neon-mint); color: var(--neon-mint); border-radius: 6px; cursor: pointer;">닫기</button>
+        </div>
+    </main>
+
+    <footer style="margin-top: 80px;">
+        <div style="width: 100%; text-align: center; background: #080808; padding: 30px 0; border-top: 1px solid #111;">
+            <div
+                style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; flex-wrap: wrap; gap: 20px;">
+                <div style="text-align: left; line-height: 1.8;">
+                    <span
+                        style="font-size: 18px; font-weight: bold; color: #fff; letter-spacing: 1px;">StageMate</span><br>
+                    <span style="font-size: 11px; color: #666;">혼자가 아닌 함께하는 공연</span><br>
+                    <span style="font-size: 11px; color: #444;">Developer : 이승지 | Contact : lsjselly@email.com</span><br>
+                    <span style="font-size: 10px; color: #333;">© 2026 StageMate</span>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                    <span style="font-size: 12px; color: #999; font-style: italic;">"오늘도 새로운 공연 친구를 만나보세요."</span>
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" class="wish-btn"
+                        style="margin-top: 0; padding: 6px 20px; font-size: 11px; font-weight: bold; border-radius: 20px;">[동행
+                        찾기]</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => { updateFilterDates(); });
+
+        function updateFilterDates() {
+            const select = document.getElementById('filterConcertSelect');
+            const container = document.getElementById('filterDateCheckboxContainer');
+            if (!select || !container) return;
+            const selectedOption = select.options[select.selectedIndex];
+            container.innerHTML = "";
+            const savedDatesStr = "<%= Array.isArray(filters.date) ? filters.date.join(',') : (filters.date || '') %>";
+            const savedDates = savedDatesStr.split(',');
+
+            if (selectedOption && selectedOption.value !== "") {
+                const dateRangeStr = selectedOption.getAttribute('data-dates');
+                if (dateRangeStr) {
+                    const parts = dateRangeStr.split('-');
+                    if (parts.length === 2) {
+                        const startStr = parts[0].trim(), endStr = parts[1].trim();
+                        const baseParts = startStr.split('.'), year = baseParts[0], month = baseParts[1], startDay = parseInt(baseParts[2]);
+                        let endDay = parseInt(endStr);
+                        if (endStr.includes('.')) endDay = parseInt(endStr.split('.')[endStr.split('.').length - 1]);
+                        if (!isNaN(startDay) && !isNaN(endDay)) {
+                            for (let d = startDay; d <= endDay; d++) {
+                                const fullDate = `${year}-${month.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                                const isChecked = savedDates.includes(fullDate) ? 'checked' : '';
+                                container.innerHTML += `<label style="cursor: pointer; margin-right: 15px; display: inline-flex; align-items: center; gap: 3px;">
+                                    <input type="checkbox" name="date" value="${fullDate}" ${isChecked}> ${month.toString().padStart(2, '0')}/${d.toString().padStart(2, '0')}</label>`;
+                            }
+                        }
+                    } else {
+                        const formattedDate = dateRangeStr.trim().replace(/\./g, '-');
+                        const isChecked = savedDates.includes(formattedDate) ? 'checked' : '';
+                        container.innerHTML += `<label style="cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
+                            <input type="checkbox" name="date" value="${formattedDate}" ${isChecked || 'checked'}> ${dateRangeStr.trim()}</label>`;
+                    }
+                }
+            } else {
+                container.innerHTML = `<span style="color:#555; font-size:12px; font-style:italic;">공연을 먼저 선택하면 상세 날짜가 나타납니다.</span>`;
+            }
+        }
+
+        function openWriteModal() {
+            document.getElementById('modalTitle').innerText = "✍️ 동행 모집하기";
+            document.getElementById('postForm').action = "/posts/create";
+            document.getElementById('postIdInput').value = ""; document.getElementById('modalTitleInput').value = ""; document.getElementById('modalContentInput').value = "";
+            document.getElementById('writeModal').style.display = 'block';
+            updateModalDates();
+        }
+
+        function closeWriteModal() { document.getElementById('writeModal').style.display = 'none'; }
+
+        function updateModalDates() {
+            const select = document.getElementById('modalConcertSelect');
+            const container = document.getElementById('modalDateCheckboxContainer');
+            if (!select || !container || !select.options[select.selectedIndex]) return;
+            const dateRangeStr = select.options[select.selectedIndex].getAttribute('data-dates');
+            container.innerHTML = "";
+
+            if (dateRangeStr) {
+                const parts = dateRangeStr.split('-');
+                if (parts.length === 2) {
+                    const baseParts = parts[0].trim().split('.'), year = baseParts[0], month = baseParts[1], startDay = parseInt(baseParts[2]);
+                    let endDay = parseInt(parts[1].trim());
+                    if (parts[1].trim().includes('.')) endDay = parseInt(parts[1].trim().split('.')[parts[1].trim().split('.').length - 1]);
+
+                    if (!isNaN(startDay) && !isNaN(endDay)) {
+                        for (let d = startDay; d <= endDay; d++) {
+                            const fullDate = `${year}-${month.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+                            container.innerHTML += `<label style="cursor: pointer; margin-right: 15px; display: inline-flex; align-items: center; gap: 5px;">
+                                <input type="checkbox" name="postDates" value="${fullDate}"> ${month.toString().padStart(2, '0')}/${d.toString().padStart(2, '0')}</label>`;
+                        }
+                    }
+                } else {
+                    const formattedDate = dateRangeStr.trim().replace(/\./g, '-');
+                    container.innerHTML += `<label style="cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" name="postDates" value="${formattedDate}" checked> ${dateRangeStr.trim()}</label>`;
+                }
+            }
+        }
+
+        function openUserProfile(name, age, gender, fallbackAvatar, userImgPath) {
+            document.getElementById('pModalName').innerText = name;
+            document.getElementById('pModalInfo').innerText = `${age === "무관" ? "나이무관" : age + '대'} / ${gender}`;
+            const avatarBox = document.getElementById('pModalAvatar');
+            if (userImgPath && userImgPath.trim() !== '' && userImgPath !== 'undefined') {
+                avatarBox.innerHTML = `<img src="${userImgPath}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else avatarBox.innerHTML = fallbackAvatar;
+            document.getElementById('profileModal').style.display = 'block';
+        }
+
+        function validatePostForm() {
+            let isChecked = false;
+            document.querySelectorAll('input[name="postDates"]').forEach(cb => { if (cb.checked) isChecked = true; });
+            if (!isChecked) { alert("공연 날짜를 최소 하나 이상 선택해 주세요!"); return false; }
+            return true;
+        }
+
+        function openEditModal(id, title, content, concertId, savedDatesStr) {
+            document.getElementById('modalTitle').innerText = "⚙️ 모집글 수정하기";
+            document.getElementById('postForm').action = "/posts/update";
+            document.getElementById('postIdInput').value = id; document.getElementById('modalTitleInput').value = title; document.getElementById('modalContentInput').value = content;
+            const concertSelect = document.getElementById('modalConcertSelect');
+            if (concertSelect) concertSelect.value = concertId;
+            document.getElementById('writeModal').style.display = 'block';
+            updateModalDates();
+
+            if (savedDatesStr) {
+                const savedDatesArray = savedDatesStr.split(',');
+                document.querySelectorAll('input[name="postDates"]').forEach(cb => {
+                    if (savedDatesArray.includes(cb.value)) cb.checked = true;
+                });
+            }
+        }
+    </script>
+    <script src="/script1.js"></script>
+</body>
+
+</html>
